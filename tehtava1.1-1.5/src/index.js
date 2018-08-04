@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 const Otsikko = (props) => {
     return (
         <div>
-          <p>{props.kurssi}</p>
+          <p>{props.kurssi.nimi}</p>
         </div>
       )
 }
@@ -18,35 +18,51 @@ const Osa = (props) => {
 const Sisalto = (props) => {
     return (
         <div>
-            <Osa osa={props.osa1} tehtavia={props.tehtavia1}/>
-            <Osa osa={props.osa2} tehtavia={props.tehtavia2}/>
-            <Osa osa={props.osa3} tehtavia={props.tehtavia3}/>
+            <Osa osa={props.kurssi.osat[0].nimi} tehtavia={props.kurssi.osat[0].tehtavia} />
+            <Osa osa={props.kurssi.osat[1].nimi} tehtavia={props.kurssi.osat[1].tehtavia} />
+            <Osa osa={props.kurssi.osat[2].nimi} tehtavia={props.kurssi.osat[2].tehtavia} />
         </div>
       )
 }
 
 const Yhteensa = (props) => {
+    let yhteensa = 0; 
+    props.kurssi.osat.forEach((luku) => {
+      yhteensa += luku.tehtavia
+    })
     return (
         <div>
-          <p>yhteensä {props.yhteensa} tehtävää </p>
+          <p>yhteensä {yhteensa} tehtävää </p>
         </div>
       )
 }
 
 const App = () => {
-  const kurssi = 'Half Stack -sovelluskehitys'
-  const osa1 = 'Reactin perusteet'
-  const tehtavia1 = 10
-  const osa2 = 'Tiedonvälitys propseilla'
-  const tehtavia2 = 7
-  const osa3 = 'Komponenttien tila'
-  const tehtavia3 = 14
+  const kurssi = {
+    nimi: 'Half Stack -sovelluskehitys',
+    osat: [
+      {
+        nimi: 'Reactin perusteet',
+        tehtavia: 10
+      },
+      {
+        nimi: 'Tiedonvälitys propseilla',
+        tehtavia: 7
+      },
+      {
+        nimi: 'Komponenttien tila',
+        tehtavia: 14
+      }
+    ]
+  }
+
+
 
   return (
     <div>
-        <Otsikko kurssi={kurssi}/>
-        <Sisalto osa1={osa1} osa2={osa2} osa3={osa3} tehtavia1={tehtavia1} tehtavia2={tehtavia2} tehtavia3={tehtavia3}/>
-        <Yhteensa yhteensa={tehtavia1 + tehtavia2 + tehtavia3}/>
+      <Otsikko kurssi={kurssi} />
+      <Sisalto kurssi={kurssi} />
+      <Yhteensa kurssi={kurssi} />
     </div>
   )
 }
