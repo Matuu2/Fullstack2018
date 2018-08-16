@@ -1,5 +1,16 @@
 import React from 'react';
-import axios from 'axios'
+import personService from './services/persons'
+
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+  return (
+    <div className="error">
+      {message}
+    </div>
+  )
+}
 
 const SearchInput = ({value,onChange}) =>{
   return(
@@ -42,15 +53,18 @@ class App extends React.Component {
       newName: '',
       newNro: '',
       search: '',
-      showAll: true
+      showAll: true,
+      error: null
     }
   }
 
   componentDidMount() {
-    axios
-      .get('http://localhost:3001/persons')
+    personService
+      .getAll()
       .then(response => {
-        this.setState({ persons: response.data })
+        this.setState(
+          {persons: response.sort((person1,person2)=>person1.name>person2.name)}
+        )
       })
   }
 
@@ -84,18 +98,66 @@ class App extends React.Component {
         name: this.state.newName,
         number: this.state.newNro
       }
-    
-      const persons = this.state.persons
-        .concat(personObject)
-        .sort((person1,person2)=>person1.name>person2.name)
-    
-      this.setState({
-        persons: persons,
-        newName: '',
-        newNro: ''
-      })
+      personService
+        .create(personObject)
+        .then(response => {
+          personObject.id = response.id
+          this.setState({
+            persons : this.state.persons
+              .concat(personObject)
+              .sort((person1,person2)=>person1.name>person2.name),
+            newName: '',
+            newNro: '',
+            error: 'Lisätty '+personObject.name
+          })
+        })
+      setTimeout(() => {
+        this.setState({error: null})
+      }, 5000)  
+    }else if(onkoHenkiloTietokannassa !== -1){
+      const person = this.state.persons[onkoHenkiloTietokannassa]
+      person.number = this.state.newNro
+      if (window.confirm(person.name+' on jo luettelossa, korvataanko vanha numero uudella?')){
+        const id = person.id
+        personService
+          .update(id,person)
+          .then(response => {
+            const updatedPersons = this.state.persons
+              .filter(p => p.id !== id)
+              .concat(person)
+              .sort((person1,person2)=>person1.name>person2.name)
+            this.setState({
+              persons: updatedPersons,
+              newName: '',
+              newNro: '',
+              error: 'Muokattu henkilön '+person.name+' numero'
+            })
+          })
+        setTimeout(() => {
+          this.setState({error: null})
+        }, 5000)      
+      } 
     }
   }
+  deletePerson = (id) => {
+    const person = this.state.persons.find(p => p.id === id)
+    if (window.confirm('Poistetaanko '+person.name+ '?')){
+      personService
+        .remove(id)
+        .then(response => {
+          const updatedPersons = this.state.persons
+            .filter(person => person.id !== id)
+          this.setState({
+            persons : updatedPersons,
+            error: 'Poistettu henkilö '+person.name
+          })  
+        })
+      setTimeout(() => {
+        this.setState({error: null})
+      }, 5000)   
+    }
+  }
+
   render() {
     const personsToShow =
     this.state.showAll ?
@@ -103,10 +165,12 @@ class App extends React.Component {
       this.state.persons.filter(person => person.name.toLocaleLowerCase().includes(this.state.search.toLowerCase()))
 
     const henkilot = () => {
-      return(personsToShow.map(person=><tr key={person.name}><td>{person.name}</td><td>{person.number}</td></tr>)
+      return(personsToShow
+        .map(person=><tr key={person.name}><td>{person.name}</td><td>{person.number}</td><td><button onClick={()=>this.deletePerson(person.id)}>Poista</button></td></tr>)
     )}
     return (
       <div>
+        <Notification message={this.state.error}/>
         <h2>Puhelinluettelo</h2>
         <SearchInput value={this.state.search} onChange={this.handleSearchChange}/>
         <h2>Lisää uusi</h2>
