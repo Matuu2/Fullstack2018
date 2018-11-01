@@ -23,6 +23,7 @@ const SearchInput = ({value,onChange}) =>{
     </div>
   )
 }
+
 const AddNewPerson = ({onSubmit,name,onNameChange,number,onNumberChange}) => {
   return(
     <form onSubmit={onSubmit}>
@@ -88,12 +89,12 @@ class App extends React.Component {
 
   addPerson = (event) => {
     event.preventDefault()
-    const onkoHenkiloTietokannassa = this.state.persons.findIndex(
+    const isPersonInDB = this.state.persons.findIndex(
       person => person.name.toLowerCase() === this.state.newName.toLowerCase())
-    const onkoNumeroTietokannassa = this.state.persons.findIndex(
+    const isNumberInDB = this.state.persons.findIndex(
       person => person.numero === this.state.newNro)
       
-    if (onkoHenkiloTietokannassa === -1 && onkoNumeroTietokannassa === -1){
+    if (isPersonInDB === -1 && isNumberInDB === -1){
       const personObject = {
         name: this.state.newName,
         number: this.state.newNro
@@ -113,9 +114,10 @@ class App extends React.Component {
         })
       setTimeout(() => {
         this.setState({error: null})
-      }, 5000)  
-    }else if(onkoHenkiloTietokannassa !== -1){
-      const person = this.state.persons[onkoHenkiloTietokannassa]
+      }, 5000)
+
+    }else if(isPersonInDB !== -1){
+      const person = this.state.persons[isPersonInDB]
       person.number = this.state.newNro
       if (window.confirm(person.name+' on jo luettelossa, korvataanko vanha numero uudella?')){
         const id = person.id
@@ -166,7 +168,7 @@ class App extends React.Component {
 
     const henkilot = () => {
       return(personsToShow
-        .map(person=><tr key={person.name}><td>{person.name}</td><td>{person.number}</td><td><button onClick={()=>this.deletePerson(person.id)}>Poista</button></td></tr>)
+        .map(person=><tr key={person.name}><td>{person.name}</td><td>{person.number}</td><td><button onClick={()=>this.deletePerson(person._id)}>Poista</button></td></tr>)
     )}
     return (
       <div>
